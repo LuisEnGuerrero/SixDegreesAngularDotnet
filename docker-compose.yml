@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-pruebasd
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "4n6ur3c0ntr4s3n4@Fir3"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "4n6ur3c0ntr4s3n4@Fir3", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    user: root
+
+  app:
+    build:
+      context: .
+      dockerfile: "./SixDegrees.PruebaSD.WebApi/Dockerfile"
+    image: sixdegrees-pruebasd
+    container_name: net9-app
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - CONNECTION_STRING=Server=db,1433;Database=PruebaSD;User Id=sa;Password=4n6ur3c0ntr4s3n4@Fir3;Encrypt=False;TrustServerCertificate=True
+    extra_hosts:
+      - "db:172.19.0.2"  # Ajusta esta IP para apuntar a la base de datos.
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+    name: mssql_data

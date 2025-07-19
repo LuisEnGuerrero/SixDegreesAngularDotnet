@@ -1,0 +1,22 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*.vs
+*.vscode
+*.sw?
+*.swo
+*.swn
+
+# Angular
+node_modules/
+dist/
+.angular/
+.env
+.env.local
+*.log
+*.md

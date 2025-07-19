@@ -1,0 +1,24 @@
+<h2>Buscar Usuarios</h2>
+
+<input type="number" [(ngModel)]="searchId" placeholder="ID del usuario" />
+<button (click)="buscarPorId()">Buscar por ID</button>
+<button (click)="mostrarTodos()">Mostrar todos</button>
+
+<table *ngIf="usuarios.length > 0" class="usuarios-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Apellido</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let usuario of usuarios">
+      <td>{{ usuario.usuID }}</td>
+      <td>{{ usuario.nombre }}</td>
+      <td>{{ usuario.apellido }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="usuarios.length === 0">No se encontraron usuarios.</p>
