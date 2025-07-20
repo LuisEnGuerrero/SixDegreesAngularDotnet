@@ -1,0 +1,40 @@
+# Dockerfile.sqlserver
+
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+# Variables de entorno
+ENV ACCEPT_EULA=Y \
+    MSSQL_SA_PASSWORD=4n6ur3c0ntr4s3n4@Fir3 \
+    MSSQL_PID=Developer
+
+# Copiar scripts de inicialización y herramientas
+COPY database/scripts/ /usr/src/scripts/
+COPY init.sh /usr/src/init.sh
+COPY wait-for-it.sh /usr/src/wait-for-it.sh
+
+# Cambiar a root para instalar dependencias
+USER root
+
+# Instalar herramientas y dependencias
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        gnupg \
+        gpgv \
+        gnupg-l10n \
+        gnupg-utils && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y --no-install-recommends mssql-tools unixodbc-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Dar permisos de ejecución
+RUN chmod +x /usr/src/init.sh /usr/src/wait-for-it.sh /usr/src/scripts/*.sql
+
+# Volver al usuario por defecto de la imagen
+USER mssql
+
+# Entrypoint personalizado
+CMD ["/bin/bash", "/usr/src/init.sh"]

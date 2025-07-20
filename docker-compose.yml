@@ -1,24 +1,32 @@
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    user: root
+    build:
+      context: .
+      dockerfile: Dockerfile.sqlserver
     container_name: sqlserver-pruebasd
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "4n6ur3c0ntr4s3n4@Fir3"
-      MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: "4n6ur3c0ntr4s3n4@Fir7"
+      MSSQL_PID: "Developer"
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_DATA_DIR: "/var/opt/mssql/data"
+      MSSQL_COLLATION: "SQL_Latin1_General_CP1_CI_AS"
     ports:
       - "1433:1433"
     volumes:
-      - mssql_data:/var/opt/mssql/data
+      - mssql_data:/var/opt/mssql
+      - ./mssql-data:/var/opt/mssql/data
       - ./database/scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "4n6ur3c0ntr4s3n4@Fir3", "-Q", "SELECT 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -b -o /dev/null || exit 1"]
       interval: 10s
-      timeout: 30s
-      retries: 5
-      start_period: 10s
+      timeout: 120s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
-    user: root
+
 
   app:
     build:
@@ -29,15 +37,13 @@ services:
     ports:
       - "5000:8080"
     environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Database=PruebaSD;User=sa;Password=4n6ur3c0ntr4s3n4@Fir7;Encrypt=false;TrustServerCertificate=true
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - CONNECTION_STRING=Server=db,1433;Database=PruebaSD;User Id=sa;Password=4n6ur3c0ntr4s3n4@Fir3;Encrypt=False;TrustServerCertificate=True
-    extra_hosts:
-      - "db:172.19.0.2"  # Ajusta esta IP para apuntar a la base de datos.
     depends_on:
-      - db
+      db:
+        condition: service_started 
     restart: unless-stopped
 
 volumes:
   mssql_data:
-    name: mssql_data

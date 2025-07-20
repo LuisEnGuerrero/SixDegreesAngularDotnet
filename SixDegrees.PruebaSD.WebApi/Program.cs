@@ -13,16 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 DotNetEnv.Env.Load();
 
 // Obtener cadena de conexión desde entorno
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
-    ?? throw new InvalidOperationException("La cadena de conexión no está configurada.");
-
-// Registrar servicios
-// var connectionString = builder.Configuration.GetConnectionString("CONNECTION_STRING");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string 'CONNECTION_STRING' is not configured.");
+    throw new InvalidOperationException("La cadena de conexión no está configurada.");
 }
-
 
 // Habilitar CORS
 builder.Services.AddCors(options =>
